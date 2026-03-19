@@ -1,0 +1,64 @@
+#!/usr/bin/env node
+
+const fs = require('fs');
+const path = require('path');
+
+const args = process.argv.slice(2);
+
+if (args.length === 0) {
+    console.log('Usage: node noder <command>');
+    process.exit(1);
+}
+
+const parts = args[0].split(':');
+const command = parts[0];
+const action = parts[1];
+
+if (action === undefined || action === null) {
+    console.log('Action of the method is required.');
+    process.exit(1)
+}
+
+const actions = {
+    controller: { dir: 'Controllers', template: '' },
+    middleware: { dir: 'Middleware', template: '' },
+};
+
+switch(command) {
+    case 'make':
+        const config = actions[action];
+
+        if (!config) {
+            console.log(`Unknown action: ${action}`);
+            process.exit(1);
+        }
+
+        const names = args.slice(1);
+
+        if (!config.dir || config.dir === '') {
+            console.log('Noder config error.');
+            process.exit(1)
+        }
+
+        const dir = path.join(process.cwd(), 'src', config.dir);
+
+        if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
+        }
+
+        names.forEach(name => {
+            const filePath = path.join(dir, `${name}.js`);
+
+            if (fs.existsSync(filePath)) {
+                console.log(`[SKIP] ${name}.js already exists.`);
+                return;
+            }
+
+            fs.writeFileSync(filePath, config.template);
+            console.log(`[OK] src/${config.dir}/${name}.js`);
+        });
+
+        break;
+    default:
+        console.log('Invalid command.');
+}

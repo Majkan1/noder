@@ -5,11 +5,18 @@ const path = require('path');
 
 const args = process.argv.slice(2);
 
-if (args.length === 0 || args[0] === 'list') {
+if (args.length === 0 || args[0] === 'list' || args[0] === 'ls') {
     console.log('Available commands:');
     console.log('  list                   Show all available commands');
     console.log('  make:controller        Create a new controller file');
     console.log('  make:middleware        Create a new middleware file');
+    console.log('  make:model             Create a new model file');
+    console.log('  make:route             Create a new route file');
+    console.log('  make:service           Create a new service file');
+    console.log('  make:validator         Create a new validator file');
+    console.log('  make:config            Create a new config file');
+    console.log('  make:migration         Create a new migration file');
+    console.log('  make:seeder            Create a new seeder file');
     process.exit(0);
 }
 
@@ -25,6 +32,13 @@ if (action === undefined || action === null) {
 const actions = {
     controller: { dir: 'Controllers', template: '' },
     middleware: { dir: 'Middleware', template: '' },
+    model:      { dir: 'Models', template: '' },
+    route:      { dir: 'Routes', template: '' },
+    service:    { dir: 'Services', template: '' },
+    validator:  { dir: 'Validators', template: '' },
+    config:     { dir: 'Config', template: '' },
+    migration:  { dir: 'Migrations', template: '' },
+    seeder:     { dir: 'Seeders', template: '' },
 };
 
 switch(command) {

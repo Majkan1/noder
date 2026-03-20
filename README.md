@@ -1,4 +1,4 @@
-# Noder - File manager for Express applications
+# Noder - project structure manager for Express applications
 Have you ever wondered if manually creating files in your Express apps is optimal? Probably not. But you never really cared. 
 Now you can start caring because __this tool does it for you__.
 

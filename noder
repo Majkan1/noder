@@ -5,9 +5,14 @@ const path = require('path');
 
 const args = process.argv.slice(2);
 
+const configPath = path.join(process.cwd(), '.noder', 'config.js');
+const noderConfig = fs.existsSync(configPath) ? require(configPath) : {};
+const directoriesUppercase = noderConfig.directoriesUppercase ?? true;
+
 if (args.length === 0 || args[0] === 'list' || args[0] === 'ls') {
     console.log('Available commands:');
     console.log('  list                   Show all available commands');
+    console.log('  init                   Create .noder/config.js in current project');
     console.log('  make:controller        Create a new controller file');
     console.log('  make:middleware        Create a new middleware file');
     console.log('  make:model             Create a new model file');
@@ -20,6 +25,21 @@ if (args.length === 0 || args[0] === 'list' || args[0] === 'ls') {
     process.exit(0);
 }
 
+if (args[0] === 'init') {
+    const initDir = path.join(process.cwd(), '.noder');
+    const initPath = path.join(initDir, 'config.js');
+
+    if (fs.existsSync(initPath)) {
+        console.log('[INFO] .noder/config.js already exists.');
+        process.exit(0);
+    }
+
+    fs.mkdirSync(initDir, { recursive: true });
+    fs.writeFileSync(initPath, `module.exports = {\ndirectoriesUppercase: true\n};\n`);
+    console.log('[OK] .noder/config.js created.');
+    process.exit(0);
+}
+
 const parts = args[0].split(':');
 const command = parts[0];
 const action = parts[1];
@@ -29,16 +49,18 @@ if (action === undefined || action === null) {
     process.exit(1)
 }
 
+const dir = (name) => directoriesUppercase ? name : name.toLowerCase();
+
 const actions = {
-    controller: { dir: 'Controllers', template: '' },
-    middleware: { dir: 'Middleware', template: '' },
-    model:      { dir: 'Models', template: '' },
-    route:      { dir: 'Routes', template: '' },
-    service:    { dir: 'Services', template: '' },
-    validator:  { dir: 'Validators', template: '' },
-    config:     { dir: 'Config', template: '' },
-    migration:  { dir: 'Migrations', template: '' },
-    seeder:     { dir: 'Seeders', template: '' },
+    controller: { dir: dir('Controllers'), template: '' },
+    middleware: { dir: dir('Middleware'), template: '' },
+    model:      { dir: dir('Models'), template: '' },
+    route:      { dir: dir('Routes'), template: '' },
+    service:    { dir: dir('Services'), template: '' },
+    validator:  { dir: dir('Validators'), template: '' },
+    config:     { dir: dir('Config'), template: '' },
+    migration:  { dir: dir('Migrations'), template: '' },
+    seeder:     { dir: dir('Seeders'), template: '' },
 };
 
 switch(command) {

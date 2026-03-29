@@ -7,7 +7,7 @@ const args = process.argv.slice(2);
 
 const configPath = path.join(process.cwd(), '.noder', 'config.js');
 const noderConfig = fs.existsSync(configPath) ? require(configPath) : {};
-const directoriesUppercase = noderConfig.directoriesUppercase ?? true;
+const directoryNames = noderConfig.directoryNames ?? {};
 
 if (args.length === 0 || args[0] === 'list' || args[0] === 'ls') {
     console.log('Available commands:');
@@ -35,7 +35,7 @@ if (args[0] === 'init') {
     }
 
     fs.mkdirSync(initDir, { recursive: true });
-    fs.writeFileSync(initPath, `module.exports = {\ndirectoriesUppercase: true\n};\n`);
+    fs.writeFileSync(initPath, `module.exports = {\n    directoryNames: {\n        controller: 'Controllers',\n        middleware: 'Middleware',\n        model:      'Models',\n        route:      'Routes',\n        service:    'Services',\n        validator:  'Validators',\n        config:     'Config',\n        migration:  'Migrations',\n        seeder:     'Seeders',\n    }\n};\n`);
     console.log('[OK] .noder/config.js created.');
     process.exit(0);
 }
@@ -44,24 +44,29 @@ const parts = args[0].split(':');
 const command = parts[0];
 const action = parts[1];
 
-if (action === undefined || action === null) {
+if (!action) {
     console.log('Action of the method is required.');
     process.exit(1)
 }
 
-const dir = (name) => directoriesUppercase ? name : name.toLowerCase();
-
-const actions = {
-    controller: { dir: dir('Controllers'), template: '' },
-    middleware: { dir: dir('Middleware'), template: '' },
-    model:      { dir: dir('Models'), template: '' },
-    route:      { dir: dir('Routes'), template: '' },
-    service:    { dir: dir('Services'), template: '' },
-    validator:  { dir: dir('Validators'), template: '' },
-    config:     { dir: dir('Config'), template: '' },
-    migration:  { dir: dir('Migrations'), template: '' },
-    seeder:     { dir: dir('Seeders'), template: '' },
+const defaults = {
+    controller: 'Controllers',
+    middleware: 'Middleware',
+    model:      'Models',
+    route:      'Routes',
+    service:    'Services',
+    validator:  'Validators',
+    config:     'Config',
+    migration:  'Migrations',
+    seeder:     'Seeders',
 };
+
+const actions = Object.fromEntries(
+    Object.entries(defaults).map(([key, defaultDir]) => [
+        key,
+        { dir: directoryNames[key] ?? defaultDir, template: '' }
+    ])
+);
 
 switch(command) {
     case 'make':

@@ -1,0 +1,9 @@
+{
+  "name": "noder",
+  "version": "1.0.0",
+  "description": "CLI tool for generating Node.js project files",
+  "bin": {
+    "noder": "./noder"
+  },
+  "license": "MIT"
+}

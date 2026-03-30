@@ -1,0 +1,124 @@
+#!/usr/bin/env node
+
+const fs = require('fs');
+const path = require('path');
+
+const args = process.argv.slice(2);
+
+const configPath = path.join(process.cwd(), '.noder', 'config.js');
+const noderConfig = fs.existsSync(configPath) ? require(configPath) : {};
+const directoryNames = noderConfig.directoryNames ?? {};
+
+function getValidNames(names) {
+    const cleaned = names.map(name => name.trim()).filter(Boolean);
+    const invalid = names.filter(name => name.trim() === '');
+
+    if (invalid.length > 0) {
+        console.log('[WARN] Skipped empty name(s).');
+    }
+
+    return cleaned;
+}
+
+if (args.length === 0 || args[0] === 'list' || args[0] === 'ls') {
+    console.log('Available commands:');
+    console.log('  list                   Show all available commands');
+    console.log('  init                   Create .noder/config.js in current project');
+    console.log('  make:controller        Create a new controller file');
+    console.log('  make:middleware        Create a new middleware file');
+    console.log('  make:model             Create a new model file');
+    console.log('  make:route             Create a new route file');
+    console.log('  make:service           Create a new service file');
+    console.log('  make:validator         Create a new validator file');
+    console.log('  make:config            Create a new config file');
+    console.log('  make:migration         Create a new migration file');
+    console.log('  make:seeder            Create a new seeder file');
+    process.exit(0);
+}
+
+if (args[0] === 'init') {
+    const initDir = path.join(process.cwd(), '.noder');
+    const initPath = path.join(initDir, 'config.js');
+
+    if (fs.existsSync(initPath)) {
+        console.log('[INFO] .noder/config.js already exists.');
+        process.exit(0);
+    }
+
+    fs.mkdirSync(initDir, { recursive: true });
+    fs.writeFileSync(initPath, `module.exports = {\n    directoryNames: {\n        controller: 'Controllers',\n        middleware: 'Middleware',\n        model:      'Models',\n        route:      'Routes',\n        service:    'Services',\n        validator:  'Validators',\n        config:     'Config',\n        migration:  'Migrations',\n        seeder:     'Seeders',\n    }\n};\n`);
+    console.log('[OK] .noder/config.js created.');
+    process.exit(0);
+}
+
+const parts = args[0].split(':');
+const command = parts[0];
+const action = parts[1];
+
+if (!action) {
+    console.log('Action of the method is required.');
+    process.exit(1)
+}
+
+const defaults = {
+    controller: 'Controllers',
+    middleware: 'Middleware',
+    model:      'Models',
+    route:      'Routes',
+    service:    'Services',
+    validator:  'Validators',
+    config:     'Config',
+    migration:  'Migrations',
+    seeder:     'Seeders',
+};
+
+const actions = Object.fromEntries(
+    Object.entries(defaults).map(([key, defaultDir]) => [
+        key,
+        { dir: directoryNames[key] ?? defaultDir, template: '' }
+    ])
+);
+
+switch(command) {
+    case 'make':
+        const config = actions[action];
+
+        if (!config) {
+            console.log(`Unknown action: ${action}`);
+            process.exit(1);
+        }
+
+        const names = getValidNames(args.slice(1));
+
+        if (names.length === 0) {
+            console.log('At least one name is required.');
+            process.exit(1);
+        }
+
+        if (!config.dir || config.dir === '') {
+            console.log('Noder config error.');
+            process.exit(1)
+        }
+
+        const dir = path.join(process.cwd(), 'src', config.dir);
+
+        if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
+        }
+
+        names.forEach(name => {
+            const filePath = path.join(dir, `${name}.js`);
+
+            if (fs.existsSync(filePath)) {
+                console.log(`[SKIP] ${name}.js already exists.`);
+                return;
+            }
+
+            fs.writeFileSync(filePath, config.template);
+            console.log(`[OK] src/${config.dir}/${name}.js`);
+        });
+
+        break;
+    default:
+        console.log('Invalid command.');
+}

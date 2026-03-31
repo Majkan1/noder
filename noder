@@ -11,9 +11,8 @@ const directoryNames = noderConfig.directoryNames ?? {};
 
 function getValidNames(names) {
     const cleaned = names.map(name => name.trim()).filter(Boolean);
-    const invalid = names.filter(name => name.trim() === '');
 
-    if (invalid.length > 0) {
+    if (cleaned.length < names.length) {
         console.log('[WARN] Skipped empty name(s).');
     }
 
